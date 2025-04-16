@@ -1,3 +1,6 @@
+// 🧩 本文件为 ExpressionScorer.jsx
+// 包含表达评分器 + 氨基酸频率图 + Gly/Pro Tooltip + PNG 可视化矩阵
+
 import React, { useState, useRef, useEffect } from "react";
 
 const hydrophobic = new Set(["A", "I", "L", "M", "F", "W", "V", "P", "G"]);
@@ -60,7 +63,6 @@ function calculateScore(seq) {
     sequence: seq,
   };
 }
-
 function exportToCSV(result) {
   const rows = Object.entries(result.aaCounts)
     .sort((a, b) => b[1] - a[1])
@@ -162,8 +164,6 @@ function SequenceMatrixCanvas({ sequence, filename = "sample_name.png" }) {
     </div>
   );
 }
-
-// ✅ 主组件
 export default function ExpressionScorer() {
   const [seq, setSeq] = useState("");
   const [result, setResult] = useState(null);
@@ -183,6 +183,7 @@ export default function ExpressionScorer() {
       <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem" }}>
         Protein Expression Feasibility Analyzer
       </h1>
+
       <textarea
         placeholder="Paste your amino acid sequence (e.g., MKWVPPSLLLLLSLL...)"
         rows={6}
@@ -222,7 +223,19 @@ export default function ExpressionScorer() {
           >
             <p><strong>Sequence Length:</strong> {result.length}</p>
             <p><strong>Hydrophobic Ratio:</strong> {result.hydroRatio}</p>
-            <p><strong>Gly/Pro Ratio:</strong> {result.gpRatio}</p>
+            <p>
+              <strong>Gly/Pro Ratio:</strong> {result.gpRatio}
+              <span
+                style={{
+                  marginLeft: "0.4rem",
+                  cursor: "help",
+                  borderBottom: "1px dotted gray",
+                }}
+                title="Gly/Pro Ratio 表示 Glycine (G) 与 Proline (P) 在序列中所占比例。G 会使结构柔软，P 会打断螺旋结构。高于 25% 可能导致表达困难。"
+              >
+                ℹ️
+              </span>
+            </p>
             <p><strong>Repeat Score:</strong> {result.repeatScore}</p>
             <p><strong>Tripeptide Score:</strong> {result.triScore}</p>
             <p><strong>Total Expression Difficulty Score:</strong> {result.total}</p>
