@@ -1,8 +1,8 @@
 import React from "react";
-import ExpressionScorer from "./ExpressionScorer";
+import SequenceAnalyzerApp from "./SequenceAnalyzerApp";
 
 function App() {
-  return <ExpressionScorer />;
+  return <SequenceAnalyzerApp />;
 }
 
 export default App;
