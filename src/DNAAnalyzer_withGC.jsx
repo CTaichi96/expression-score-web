@@ -93,26 +93,6 @@ export default function DNAAnalyzer() {
     ],
   };
 
-  const scatterOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const index = context.dataIndex;
-            const region = gcRegions[index];
-            return `Start: ${region.start}, Len: ${region.length}, Seq: ${region.sequence}`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: { title: { display: true, text: "Position" } },
-      y: { title: { display: true, text: "Value" } }
-    },
-  };
-
   const commonOptions = {
     responsive: true,
     plugins: {
@@ -157,7 +137,7 @@ export default function DNAAnalyzer() {
         <>
           <div style={{ marginBottom: "2rem" }}>
             <h3>GC-rich Region Lengths (Scatter Plot)</h3>
-            <Scatter data={scatterData} options={scatterOptions} />
+            <Scatter data={scatterData} options={commonOptions} />
           </div>
 
           <div style={{ marginBottom: "2rem" }}>

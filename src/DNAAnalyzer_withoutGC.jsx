@@ -1,26 +1,9 @@
 
 import React, { useState } from "react";
-import { Scatter, Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LinearScale,
-  PointElement,
-  LineElement,
-  CategoryScale,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Scatter } from "react-chartjs-2";
+import { Chart as ChartJS, LinearScale, PointElement, Title, Tooltip, Legend } from "chart.js";
 
-ChartJS.register(
-  LinearScale,
-  PointElement,
-  LineElement,
-  CategoryScale,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(LinearScale, PointElement, Title, Tooltip, Legend);
 
 function detectGCStretches(sequence) {
   const stretches = [];
@@ -46,86 +29,60 @@ function detectGCStretches(sequence) {
   return stretches;
 }
 
-function computeGCPercent(sequence, windowSize = 30) {
-  const result = [];
-  for (let i = 0; i <= sequence.length - windowSize; i++) {
-    const window = sequence.slice(i, i + windowSize);
-    const gcCount = window.split("").filter((b) => b === "G" || b === "C").length;
-    result.push({ x: i + 1, y: +(gcCount / windowSize).toFixed(3) });
-  }
-  return result;
+function exportToCSV(regions) {
+  const header = `Start,End,Length,Sequence\n`;
+  const rows = regions.map(r => `${r.start},${r.end},${r.length},${r.sequence}\n`).join("");
+  const csvText = header + rows;
+  const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", "gc_rich_regions.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 export default function DNAAnalyzer() {
   const [seq, setSeq] = useState("");
   const [gcRegions, setGcRegions] = useState([]);
-  const [gcPercent, setGcPercent] = useState([]);
 
   const handleAnalyze = () => {
     const clean = seq.toUpperCase().replace(/[^ACGT]/g, "");
     const result = detectGCStretches(clean);
-    const gcWindow = computeGCPercent(clean);
     setGcRegions(result);
-    setGcPercent(gcWindow);
   };
 
-  const scatterData = {
+  const chartData = {
     datasets: [
       {
         label: "GC-rich Region",
         data: gcRegions.map((r) => ({ x: r.start, y: r.length })),
-        backgroundColor: "rgba(54, 162, 235, 0.7)",
-      },
-    ],
+        backgroundColor: "rgba(54, 162, 235, 0.7)"
+      }
+    ]
   };
 
-  const lineData = {
-    labels: gcPercent.map((p) => p.x),
-    datasets: [
-      {
-        label: "GC% (30bp sliding)",
-        data: gcPercent.map((p) => p.y),
-        fill: false,
-        borderColor: "rgba(75, 192, 192, 1)",
-        tension: 0.3,
-        pointRadius: 0,
+  const chartOptions = {
+    scales: {
+      x: {
+        title: { display: true, text: "Start Position" }
       },
-    ],
-  };
-
-  const scatterOptions = {
-    responsive: true,
+      y: {
+        title: { display: true, text: "Length (bp)" }
+      }
+    },
     plugins: {
-      legend: { display: true },
+      legend: { display: false },
       tooltip: {
         callbacks: {
-          label: function (context) {
+          label: function(context) {
             const index = context.dataIndex;
             const region = gcRegions[index];
             return `Start: ${region.start}, Len: ${region.length}, Seq: ${region.sequence}`;
           }
         }
       }
-    },
-    scales: {
-      x: { title: { display: true, text: "Position" } },
-      y: { title: { display: true, text: "Value" } }
-    },
-  };
-
-  const commonOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: {
-        mode: "index",
-        intersect: false,
-      },
-    },
-    scales: {
-      x: { title: { display: true, text: "Position" } },
-      y: { title: { display: true, text: "Value" } },
-    },
+    }
   };
 
   return (
@@ -138,33 +95,17 @@ export default function DNAAnalyzer() {
         value={seq}
         onChange={(e) => setSeq(e.target.value)}
       />
-      <button
-        onClick={handleAnalyze}
-        style={{
-          marginRight: "1rem",
-          marginBottom: "1rem",
-          backgroundColor: "#2563eb",
-          color: "white",
-          padding: "0.5rem 1rem",
-          border: "none",
-          borderRadius: "4px",
-        }}
-      >
+      <button onClick={handleAnalyze} style={{ marginRight: "1rem", marginBottom: "1rem" }}>
         Analyze GC-rich Regions
       </button>
-
       {gcRegions.length > 0 && (
         <>
+          <button onClick={() => exportToCSV(gcRegions)} style={{ marginBottom: "1rem" }}>
+            Export Table as CSV
+          </button>
           <div style={{ marginBottom: "2rem" }}>
-            <h3>GC-rich Region Lengths (Scatter Plot)</h3>
-            <Scatter data={scatterData} options={scatterOptions} />
+            <Scatter data={chartData} options={chartOptions} />
           </div>
-
-          <div style={{ marginBottom: "2rem" }}>
-            <h3>GC% Sliding Window (Line Chart)</h3>
-            <Line data={lineData} options={commonOptions} />
-          </div>
-
           <h3>Detected GC-Rich Regions: {gcRegions.length}</h3>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
