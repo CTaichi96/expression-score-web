@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/expression-score-web/static/css/main.e6c13ad2.css",
-    "main.js": "/expression-score-web/static/js/main.6f5298eb.js",
+    "main.js": "/expression-score-web/static/js/main.e52c8c6b.js",
     "static/js/453.bf705454.chunk.js": "/expression-score-web/static/js/453.bf705454.chunk.js",
     "index.html": "/expression-score-web/index.html",
     "main.e6c13ad2.css.map": "/expression-score-web/static/css/main.e6c13ad2.css.map",
-    "main.6f5298eb.js.map": "/expression-score-web/static/js/main.6f5298eb.js.map",
+    "main.e52c8c6b.js.map": "/expression-score-web/static/js/main.e52c8c6b.js.map",
     "453.bf705454.chunk.js.map": "/expression-score-web/static/js/453.bf705454.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.6f5298eb.js"
+    "static/js/main.e52c8c6b.js"
   ]
 }
