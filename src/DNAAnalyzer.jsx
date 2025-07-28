@@ -1,4 +1,4 @@
-
+// src/DNAAnalyzer.jsx
 import React, { useState } from "react";
 import { Scatter, Line } from "react-chartjs-2";
 import {
@@ -22,172 +22,89 @@ ChartJS.register(
   Legend
 );
 
-function detectGCStretches(sequence) {
+// GC-rich stretches detection (G/C runs)
+function detectGCStretches(seq) {
   const stretches = [];
   let i = 0;
-  while (i < sequence.length) {
-    if (sequence[i] === "G" || sequence[i] === "C") {
-      let start = i;
-      let stretch = "";
-      while (i < sequence.length && (sequence[i] === "G" || sequence[i] === "C")) {
-        stretch += sequence[i];
-        i++;
+  while (i < seq.length) {
+    if (seq[i]==="G"||seq[i]==="C") {
+      const start=i;
+      let s="";
+      while(i<seq.length&&(seq[i]==="G"||seq[i]==="C")){
+        s+=seq[i]; i++;
       }
-      stretches.push({
-        start: start + 1,
-        end: i,
-        length: i - start,
-        sequence: stretch
-      });
-    } else {
-      i++;
-    }
+      stretches.push({ start: start+1, end: i, length: i-start, sequence: s });
+    } else i++;
   }
   return stretches;
 }
-
-function computeGCPercent(sequence, windowSize = 30) {
-  const result = [];
-  for (let i = 0; i <= sequence.length - windowSize; i++) {
-    const window = sequence.slice(i, i + windowSize);
-    const gcCount = window.split("").filter((b) => b === "G" || b === "C").length;
-    result.push({ x: i + 1, y: +(gcCount / windowSize).toFixed(3) });
+// GC% sliding
+function computeGCPercent(seq,win=30){
+  const data=[];
+  for(let i=0;i<=seq.length-win;i++){
+    const w=seq.slice(i,i+win);
+    const c=w.split('').filter(b=>b==='G'||b==='C').length;
+    data.push({x:i+1,y:+(c/win).toFixed(3)});
   }
-  return result;
+  return data;
 }
 
 export default function DNAAnalyzer() {
-  const [seq, setSeq] = useState("");
-  const [gcRegions, setGcRegions] = useState([]);
-  const [gcPercent, setGcPercent] = useState([]);
+  const [seq,setSeq]=useState(""),[gcR,setGcR]=useState([]),[gcP,setGcP]=useState([]);
 
-  const handleAnalyze = () => {
-    const clean = seq.toUpperCase().replace(/[^ACGT]/g, "");
-    const result = detectGCStretches(clean);
-    const gcWindow = computeGCPercent(clean);
-    setGcRegions(result);
-    setGcPercent(gcWindow);
-  };
-
-  const scatterData = {
-    datasets: [
-      {
-        label: "GC-rich Region",
-        data: gcRegions.map((r) => ({ x: r.start, y: r.length })),
-        backgroundColor: "rgba(54, 162, 235, 0.7)",
-      },
-    ],
-  };
-
-  const lineData = {
-    labels: gcPercent.map((p) => p.x),
-    datasets: [
-      {
-        label: "GC% (30bp sliding)",
-        data: gcPercent.map((p) => p.y),
-        fill: false,
-        borderColor: "rgba(75, 192, 192, 1)",
-        tension: 0.3,
-        pointRadius: 0,
-      },
-    ],
+  const analyze=()=>{
+    const clean=seq.toUpperCase().replace(/[^ACGT]/g,"");
+    setGcR(detectGCStretches(clean));
+    setGcP(computeGCPercent(clean));
   };
 
   const scatterOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const index = context.dataIndex;
-            const region = gcRegions[index];
-            return `Start: ${region.start}, Len: ${region.length}, Seq: ${region.sequence}`;
-          }
-        }
-      }
+    scales:{
+      x:{ title:{display:true,text:"Position"} },
+      y:{ title:{display:true,text:"Length (bp)"} }
     },
-    scales: {
-      x: { title: { display: true, text: "Position" } },
-      y: { title: { display: true, text: "Value" } }
-    },
+    plugins:{ tooltip:{ callbacks:{ label(ctx){
+      const r=gcR[ctx.dataIndex];
+      return `Start:${r.start},Len:${r.length},Seq:${r.sequence}`;
+    }}}}
   };
-
-  const commonOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: {
-        mode: "index",
-        intersect: false,
-      },
-    },
-    scales: {
-      x: { title: { display: true, text: "Position" } },
-      y: { title: { display: true, text: "Value" } },
-    },
+  const lineOptions={
+    scales:{
+      x:{ title:{display:true,text:"Position"} },
+      y:{ title:{display:true,text:"GC%"} }
+    }
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>DNA GC-Rich Region Analyzer</h2>
+    <div style={{padding:16,maxWidth:960,margin:"auto"}}>
+      <h2>DNA GC Analysis</h2>
       <textarea
-        rows={6}
-        style={{ width: "100%", marginBottom: "1rem" }}
-        placeholder="Paste DNA sequence (A/T/G/C only)"
-        value={seq}
-        onChange={(e) => setSeq(e.target.value)}
+        rows={4}
+        style={{width:"100%",marginBottom:8}}
+        placeholder="Paste DNA seq"
+        value={seq} onChange={e=>setSeq(e.target.value)}
       />
-      <button
-        onClick={handleAnalyze}
-        style={{
-          marginRight: "1rem",
-          marginBottom: "1rem",
-          backgroundColor: "#2563eb",
-          color: "white",
-          padding: "0.5rem 1rem",
-          border: "none",
-          borderRadius: "4px",
-        }}
-      >
-        Analyze GC-rich Regions
-      </button>
+      <button onClick={analyze}>Analyze</button>
 
-      {gcRegions.length > 0 && (
+      {gcR.length>0&&(
         <>
-          <div style={{ marginBottom: "2rem" }}>
-            <h3>GC-rich Region Lengths (Scatter Plot)</h3>
-            <Scatter data={scatterData} options={scatterOptions} />
-          </div>
-
-          <div style={{ marginBottom: "2rem" }}>
-            <h3>GC% Sliding Window (Line Chart)</h3>
-            <Line data={lineData} options={commonOptions} />
-          </div>
-
-          <h3>Detected GC-Rich Regions: {gcRegions.length}</h3>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ccc", padding: "4px" }}>Start</th>
-                  <th style={{ border: "1px solid #ccc", padding: "4px" }}>End</th>
-                  <th style={{ border: "1px solid #ccc", padding: "4px" }}>Length</th>
-                  <th style={{ border: "1px solid #ccc", padding: "4px" }}>Sequence</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gcRegions.map((r, idx) => (
-                  <tr key={idx}>
-                    <td style={{ border: "1px solid #ccc", padding: "4px" }}>{r.start}</td>
-                    <td style={{ border: "1px solid #ccc", padding: "4px" }}>{r.end}</td>
-                    <td style={{ border: "1px solid #ccc", padding: "4px" }}>{r.length}</td>
-                    <td style={{ border: "1px solid #ccc", padding: "4px", fontFamily: "monospace" }}>{r.sequence}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h3>GC-rich Regions</h3>
+          <Scatter data={{
+            datasets:[{ label:"GC stretches", data:gcR.map(r=>({x:r.start,y:r.length})), backgroundColor:"#36a2eb"}]
+          }} options={scatterOptions} />
+          <h3>GC% (30bp)</h3>
+          <Line data={{
+            labels:gcP.map(p=>p.x),
+            datasets:[{ label:"GC%",data:gcP.map(p=>p.y), fill:false, borderColor:"#4bc0c0",pointRadius:0 }]
+          }} options={lineOptions} />
+          <table style={{width:"100%",borderCollapse:"collapse",marginTop:16}}>
+            <thead><tr><th>Start</th><th>End</th><th>Len</th><th>Seq</th></tr></thead>
+            <tbody>
+              {gcR.map((r,i)=><tr key={i}>
+                <td>{r.start}</td><td>{r.end}</td><td>{r.length}</td><td style={{fontFamily:"monospace"}}>{r.sequence}</td>
+              </tr>)}
+            </tbody>
+          </table>
         </>
       )}
     </div>

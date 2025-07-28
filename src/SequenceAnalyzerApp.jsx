@@ -1,44 +1,45 @@
-
+// src/SequenceAnalyzerApp.jsx
 import React, { useState } from "react";
 import ExpressionScorer from "./ExpressionScorer";
 import DNAAnalyzer from "./DNAAnalyzer";
 
 export default function SequenceAnalyzerApp() {
-  const [activeTab, setActiveTab] = useState("protein");
+  const [tab, setTab] = useState("protein");
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "1rem" }}>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Sequence Analysis</h1>
-      <div style={{ marginBottom: "1.5rem" }}>
+    <div style={{ padding: "1rem", fontFamily: "Arial, sans-serif" }}>
+      <h1>Sequence Analysis</h1>
+      <div style={{ margin: "1rem 0" }}>
         <button
-          onClick={() => setActiveTab("protein")}
+          onClick={() => setTab("protein")}
           style={{
-            marginRight: "1rem",
+            marginRight: 8,
             padding: "0.5rem 1rem",
-            backgroundColor: activeTab === "protein" ? "#2563eb" : "#e5e7eb",
-            color: activeTab === "protein" ? "white" : "black",
+            backgroundColor: tab === "protein" ? "#2563eb" : "#e5e7eb",
+            color: tab === "protein" ? "#fff" : "#000",
             border: "none",
-            borderRadius: "4px"
+            borderRadius: 4,
+            cursor: "pointer",
           }}
         >
-          🧪 蛋白序列分析
+          🧪 Protein Analysis
         </button>
         <button
-          onClick={() => setActiveTab("dna")}
+          onClick={() => setTab("dna")}
           style={{
             padding: "0.5rem 1rem",
-            backgroundColor: activeTab === "dna" ? "#2563eb" : "#e5e7eb",
-            color: activeTab === "dna" ? "white" : "black",
+            backgroundColor: tab === "dna" ? "#2563eb" : "#e5e7eb",
+            color: tab === "dna" ? "#fff" : "#000",
             border: "none",
-            borderRadius: "4px"
+            borderRadius: 4,
+            cursor: "pointer",
           }}
         >
-          🧬 DNA 序列分析
+          🧬 DNA Analysis
         </button>
       </div>
-
-      {activeTab === "protein" && <ExpressionScorer />}
-      {activeTab === "dna" && <DNAAnalyzer />}
+      {tab === "protein" && <ExpressionScorer />}
+      {tab === "dna" && <DNAAnalyzer />}
     </div>
   );
 }
